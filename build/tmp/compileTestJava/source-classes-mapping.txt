@@ -1,6 +1,0 @@
-com/pirates/market/MarketApplicationTests.java
- com.pirates.market.MarketApplicationTests
-com/pirates/market/Services/MarketServiceTest.java
- com.pirates.market.Services.MarketServiceTest
-com/pirates/market/Interfaces/MarketControllerTest.java
- com.pirates.market.Interfaces.MarketControllerTest

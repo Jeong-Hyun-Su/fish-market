@@ -1,5 +1,6 @@
 package com.pirates.market.Domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import javax.persistence.*;
@@ -24,6 +25,7 @@ public class Market {
     private String phone;
     private String description;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String businessStatus;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -38,4 +40,7 @@ public class Market {
     @JoinColumn
     private List<BusinessDay> businessDays;
 
+    public void setHolidays(List<Holiday> holidays){
+        this.holidays = new ArrayList<>(holidays);
+    }
 }

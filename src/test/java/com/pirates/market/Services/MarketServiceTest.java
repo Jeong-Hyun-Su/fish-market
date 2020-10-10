@@ -1,6 +1,7 @@
 package com.pirates.market.Services;
 
 import com.pirates.market.Domain.BusinessTime;
+import com.pirates.market.Domain.Holiday;
 import com.pirates.market.Domain.Market;
 import com.pirates.market.Domain.MarketRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +14,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,6 +40,7 @@ class MarketServiceTest {
                                         .level(2).address("인천광역시 남동구 논현동 680-1 소래포구 종합어시장 1층 1호")
                                         .phone("010-1111-2222").businessTimes(businessTimes).build();
 
+        given(marketRepository.findById(1)).willReturn(Optional.of(market));
 
         marketService = new MarketService(marketRepository);
     }
@@ -62,6 +66,17 @@ class MarketServiceTest {
         assertThat(market.getName()).isEqualTo("해적수산");
         assertThat(market.getOwner()).isEqualTo("박해적");
         assertThat(market.getLevel()).isEqualTo(1);
+    }
 
+    @Test
+    public void setHolidays(){
+        List<Holiday> holidays = new ArrayList<>();
+        holidays.add(new Holiday("2020-10-10"));
+        holidays.add(new Holiday("2020-10-11"));
+
+        Market market = marketService.setHolidays(1, holidays);
+
+        assertThat(market.getName()).isEqualTo("인어수산");
+        assertThat(market.getHolidays()).isEqualTo(holidays);
     }
 }

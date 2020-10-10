@@ -1,8 +1,10 @@
 package com.pirates.market.Interfaces;
 
 import com.pirates.market.Domain.BusinessTime;
+import com.pirates.market.Domain.Holiday;
 import com.pirates.market.Domain.Market;
 import com.pirates.market.Services.MarketService;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -52,5 +54,18 @@ class MarketControllerTest {
                                           .andExpect(content().string("{}"));
 
         verify(marketService, times(1)).addMarket(any());
+    }
+
+    @Test
+    public void holiday() throws Exception{
+        mvc.perform(patch("/holiday").contentType(MediaType.APPLICATION_JSON)
+                                                .content("{\"id\":1,\"holidays\": [ \"2020-10-10\", \"2020-10-11\"]}"))
+                                                .andExpect(status().isOk());
+
+        List<Holiday> holidays = new ArrayList<>();
+        holidays.add(new Holiday("2020-10-10"));
+        holidays.add(new Holiday("2020-10-11"));
+
+        verify(marketService, times(1)).setHolidays(1, holidays);
     }
 }

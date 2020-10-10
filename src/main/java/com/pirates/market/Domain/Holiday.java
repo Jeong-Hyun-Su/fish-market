@@ -18,5 +18,9 @@ public class Holiday {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private Date date;
+    private String date;
+
+    public Holiday(String date) {
+        this.date = date;
+    }
 }
