@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Market {
+public class Market implements Comparable<Market>{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -25,8 +25,6 @@ public class Market {
     private String phone;
     private String description;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String businessStatus;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn
@@ -36,11 +34,15 @@ public class Market {
     @JoinColumn
     private List<BusinessTime> businessTimes;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn
-    private List<BusinessDay> businessDays;
-
     public void setHolidays(List<Holiday> holidays){
-        this.holidays = new ArrayList<>(holidays);
+        this.holidays = holidays;
+    }
+    public void setBusinessTimes(List<BusinessTime> businessTimes){
+        this.businessTimes = businessTimes;
+    }
+
+    @Override
+    public int compareTo(Market o) {
+        return Integer.compare(this.level, o.getLevel());
     }
 }

@@ -3,6 +3,7 @@ package com.pirates.market.Domain;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
@@ -18,10 +19,13 @@ public class BusinessTime {
     private String open;
     private String close;
 
+    @Setter
+    private String status;
 
     public BusinessTime(String day, String open, String close) {
         this.day = day;
         this.open = open;
         this.close = close;
     }
+
 }

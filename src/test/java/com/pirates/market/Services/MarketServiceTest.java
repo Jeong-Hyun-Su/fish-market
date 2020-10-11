@@ -1,9 +1,6 @@
 package com.pirates.market.Services;
 
-import com.pirates.market.Domain.BusinessTime;
-import com.pirates.market.Domain.Holiday;
-import com.pirates.market.Domain.Market;
-import com.pirates.market.Domain.MarketRepository;
+import com.pirates.market.Domain.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -30,19 +27,46 @@ class MarketServiceTest {
     public void setUp(){
         MockitoAnnotations.initMocks(this);
 
-        List<BusinessTime> businessTimes = new ArrayList<>();
-        businessTimes.add(new BusinessTime("Thursday","13:00","23:00"));
-        businessTimes.add(new BusinessTime("Friday", "09:00", "18:00"));
-        businessTimes.add(new BusinessTime("Saturday", "09:00", "23:00"));
-        businessTimes.add(new BusinessTime("Sunday", "09:00", "23:00"));
-        Market market = Market.builder().id(1)
+        List<Market> markets = new ArrayList<>();
+
+        List<BusinessTime> businessTimes1 = new ArrayList<>();
+        businessTimes1.add(new BusinessTime("Thursday","13:00","23:00"));
+        businessTimes1.add(new BusinessTime("Friday", "09:00", "18:00"));
+        businessTimes1.add(new BusinessTime("Saturday", "09:00", "23:00"));
+        businessTimes1.add(new BusinessTime("Sunday", "09:00", "23:00"));
+        Market market1 = Market.builder().id(1)
                                         .name("인어수산").owner("장인어").description("인천소래포구 종합어시장 갑각류센터 인어수산")
                                         .level(2).address("인천광역시 남동구 논현동 680-1 소래포구 종합어시장 1층 1호")
-                                        .phone("010-1111-2222").businessTimes(businessTimes).build();
+                                        .phone("010-1111-2222").businessTimes(businessTimes1).build();
 
-        given(marketRepository.findById(1)).willReturn(Optional.of(market));
+
+        List<BusinessTime> businessTimes2 = new ArrayList<>();
+        businessTimes2.add(new BusinessTime("Thursday","09:00","24:00"));
+        businessTimes2.add(new BusinessTime("Friday", "09:00", "24:00"));
+        businessTimes2.add(new BusinessTime("Saturday", "09:00", "24:00"));
+        businessTimes2.add(new BusinessTime("Sunday", "09:00", "17:00"));
+        Market market2 = Market.builder().id(2)
+                .name("해적수산").owner("박해적").description("노량진 시장 광어, 참돔 등 싱싱한 고퀄 활어 전문 횟집")
+                .level(1).address("서울 동작구 노량진동 13-8 노량진수산시장 활어 001")
+                .phone("010-1234-1234").businessTimes(businessTimes2).build();
+
+
+        markets.add(market1);
+        markets.add(market2);
+
+        given(marketRepository.findById(1)).willReturn(Optional.of(market1));
+        given(marketRepository.findAll()).willReturn(markets);
 
         marketService = new MarketService(marketRepository);
+    }
+    @Test
+    public void listMarket(){
+        List<ListVO> markets = marketService.getMarketList();
+
+        assertThat(markets.get(0).getName()).isEqualTo("해적수산");
+        assertThat(markets.get(1).getName()).isEqualTo("인어수산");
+        assertThat(markets.get(0).getBusinessStatus()).isEqualTo("CLOSE");
+        assertThat(markets.get(1).getBusinessStatus()).isEqualTo("OPEN");
     }
 
     @Test
