@@ -10,4 +10,6 @@ public interface MarketRepository extends CrudRepository<Market, Integer> {
     List<Market> findAll();
     Optional<Market> findById(Integer id);
     Market save(Market market);
+
+    void deleteById(Integer id);
 }

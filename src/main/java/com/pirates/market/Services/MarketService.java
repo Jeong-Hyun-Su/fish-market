@@ -207,4 +207,8 @@ public class MarketService {
 
         return market;
     }
+
+    public void deleteMarket(Integer id){
+        marketRepository.deleteById(id);
+    }
 }

@@ -49,4 +49,9 @@ public class MarketController {
         return "{}";
     }
 
+    @DeleteMapping("/delete")
+    public String delete(@RequestBody IdVO idVO){
+        marketService.deleteMarket(idVO.getId());
+        return "{}";
+    }
 }
