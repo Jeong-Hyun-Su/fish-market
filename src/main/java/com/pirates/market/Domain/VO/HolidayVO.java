@@ -1,5 +1,6 @@
-package com.pirates.market.Domain;
+package com.pirates.market.Domain.VO;
 
+import com.pirates.market.Domain.Holiday;
 import lombok.Data;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.pirates.market.Domain;
+package com.pirates.market.Domain.VO;
 
 import lombok.Builder;
 import lombok.Data;

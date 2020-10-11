@@ -1,77 +1,88 @@
 package com.pirates.market.Services;
 
 import com.pirates.market.Domain.*;
+import com.pirates.market.Domain.VO.DetailVO;
+import com.pirates.market.Domain.VO.ListVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class MarketService {
-    private MarketRepository marketRepository;
+    private MarketRepository marketRepository = null;
+    private Date nTime;
+    private String nDate = null;
+    private String nWeek = null;
 
     @Autowired
     public MarketService(MarketRepository marketRepository) {
         this.marketRepository = marketRepository;
-    }
 
-    // 현재 날짜와 시간 - String 반환
-    public String[] getDateString(){
         // 현재 날짜와 시간
         SimpleDateFormat date_format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Calendar now = Calendar.getInstance();
 
         String now_date = date_format.format(now.getTime());
-        return now_date.split("\\s");         // 날짜, 시간
-    }
-    // 현재 시간
-    public Date getTime(){
-        String time_str = getDateString()[1];
+        String[] time_str = now_date.split("\\s");         // 날짜, 시간
+        nDate = time_str[0];
+
         // 시간끼리 비교하기 위해 분
         SimpleDateFormat time_format = new SimpleDateFormat("HH:mm");
-        Date time = null;
+
         try{
-            time = time_format.parse(time_str);
+            nTime = time_format.parse(time_str[1]);
         }catch(ParseException e){
             e.printStackTrace();
         }
 
-        return time;
-    }
-    // 현재 요일
-    public String getWeek(){
-        Calendar now = Calendar.getInstance();
+        // 현재 요일
         int weekNum = now.get(Calendar.DAY_OF_WEEK) - 1;
         String[] weekDay = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-
-        return weekDay[weekNum];
+        nWeek = weekDay[weekNum];
     }
 
+    public String getBusinessStatus(BusinessTime businessTime){
+        SimpleDateFormat time_format = new SimpleDateFormat("HH:mm");
+        Date open = null;
+        Date closed = null;
 
-    public String getBusinessStatus(Market market){
-        Date time = getTime();
-        String date = getDateString()[0];
+        try{
+            open = time_format.parse(businessTime.getOpen());
+            closed = time_format.parse(businessTime.getClose());
 
+            // 해당 요일이 존재하면
+            if(businessTime.getDay().equals(nWeek)) {
+                // 시간 비교
+                if (nTime.getTime() >= open.getTime() && nTime.getTime() <= closed.getTime()) {
+                    return "OPEN";
+                }
+            }
+        }catch(ParseException e) {
+            e.printStackTrace();
+        }
+
+        return "CLOSE";
+    }
+
+    public String getBusiness(Market market){
         SimpleDateFormat time_format = new SimpleDateFormat("HH:mm");
 
         List<Holiday> holidays = market.getHolidays();
         // 휴일중 지금 날짜와 같은 것이 있는지 카운트
-        long count = 0;
+        boolean check = false;
 
         if(holidays != null) {
-            count = holidays.stream().filter(t -> t.getDate().equals(date)).count();
+            check = holidays.stream().anyMatch(n -> n.getDate().equals(nDate));
         }
-        String businessStatus = null;
+        String businessStatus = "CLOSE";
 
         // 휴일일 경우,
-        if(count != 0){
+        if(check){
             businessStatus = "HOLIDAY";
         }
         else{
@@ -79,21 +90,9 @@ public class MarketService {
             // business 정보가 있을 경우,
             if(businessTimes != null){
                 for(BusinessTime b : businessTimes){
-                    Date open = null;
-                    Date closed = null;
-                    try{
-                        open = time_format.parse(b.getOpen());
-                        closed = time_format.parse(b.getClose());
-
-                        // 시간 비교
-                        if( time.getTime() >= open.getTime() && time.getTime() <= closed.getTime() ){
-                            businessStatus = "OPEN";
-                        }
-                        else{
-                            businessStatus = "CLOSE";
-                        }
-                    }catch(ParseException e) {
-                        e.printStackTrace();
+                    if(getBusinessStatus(b).equals("OPEN")){
+                        businessStatus = "OPEN";
+                        break;
                     }
                 }
             }
@@ -112,7 +111,7 @@ public class MarketService {
 
         // market들의 정보 중, 휴일인지 영업중인지 확인
         for(Market market : markets){
-            String businessStatus = getBusinessStatus(market);
+            String businessStatus = getBusiness(market);
 
             listVOList.add(ListVO.builder().name(market.getName())
                                             .level(market.getLevel())
@@ -122,6 +121,76 @@ public class MarketService {
         }
 
         return listVOList;
+    }
+
+    public DetailVO getMarketDetail(Integer id){
+        DetailVO detailMarket;
+
+        // 해당 마켓 정보
+        Market market = marketRepository.findById(id).orElseThrow(() -> new MarketNotFoundException(id));
+        List<Holiday> holidays = market.getHolidays();  // 휴일 정보
+
+        Calendar now = Calendar.getInstance();
+        int weekNum = now.get(Calendar.DAY_OF_WEEK) - 1;
+
+        String[] weekDay = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+        String[] week_list = new String[3];     // 3일 요일
+        String[] date_list = new String[3];     // 3일 날짜
+
+        // 현재 날짜 기준으로 3개의 요일과 날짜를 저장.
+        for(int i=0; i<3; i++){
+            int year = now.get(Calendar.YEAR);
+            int month = now.get(Calendar.MONTH) + 1;
+            int day = now.get(Calendar.DAY_OF_MONTH);
+            week_list[i] = weekDay[(weekNum + i) % 7];
+
+            date_list[i] = year + "-" + month + "-" + day;
+            now.set(Calendar.DAY_OF_MONTH, day + 1);
+        }
+
+        List<BusinessTime> businessTimes = market.getBusinessTimes();
+        List<BusinessTime> businessDays = new ArrayList<>();
+        if(businessTimes != null) {
+            for(int i = 0; i < 3; i++){
+                int finalI = i;
+                // 순차대로 근무가능 날짜 중, 해당하는 요일이 존재한다면 정보를 가져옴.
+                Optional<BusinessTime> check_day = businessTimes.stream().filter(t -> t.getDay().equals(week_list[finalI])).findFirst();
+                BusinessTime b_day = null;
+
+                // 값이 존재할 경우, 값을 get
+                if(check_day.isPresent()){
+                    b_day = check_day.get();
+                }
+
+                // 해당하는 근무시간이 없으면
+                if(b_day != null) {
+                    b_day.setStatus(getBusinessStatus(b_day));
+
+                    // 휴일이 있을 경우, 비교
+                    if(holidays != null) {
+                        for (Holiday holiday : holidays) {
+                            if (holiday.getDate().equals(date_list[finalI])) {
+                                b_day.setStatus("HOLIDAY");
+                                break;
+                            }
+                        }
+                    }
+                    businessDays.add(b_day);
+                }
+            }
+        }
+
+        detailMarket = DetailVO.builder().level(market.getLevel())
+                                         .id(id)
+                                         .address(market.getAddress())
+                                         .description(market.getDescription())
+                                         .owner(market.getOwner())
+                                         .phone(market.getPhone())
+                                         .name(market.getName())
+                                         .businessDays(businessDays)
+                                         .build();
+
+        return detailMarket;
     }
 
     // 수산시장 추가

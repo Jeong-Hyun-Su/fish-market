@@ -9,16 +9,19 @@ import javax.persistence.*;
 
 @Entity
 @NoArgsConstructor
-@Getter
 public class BusinessTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Getter
     private String day;
+    @Getter
     private String open;
+    @Getter
     private String close;
 
+    @Getter
     @Setter
     private String status;
 

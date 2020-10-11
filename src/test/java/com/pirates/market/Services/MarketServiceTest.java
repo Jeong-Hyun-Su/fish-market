@@ -1,21 +1,19 @@
 package com.pirates.market.Services;
 
 import com.pirates.market.Domain.*;
+import com.pirates.market.Domain.VO.DetailVO;
+import com.pirates.market.Domain.VO.ListVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.yaml.snakeyaml.error.Mark;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class MarketServiceTest {
     private MarketService marketService;
@@ -30,7 +28,7 @@ class MarketServiceTest {
         List<Market> markets = new ArrayList<>();
 
         List<BusinessTime> businessTimes1 = new ArrayList<>();
-        businessTimes1.add(new BusinessTime("Thursday","13:00","23:00"));
+        businessTimes1.add(new BusinessTime("Monday","13:00","23:00"));
         businessTimes1.add(new BusinessTime("Friday", "09:00", "18:00"));
         businessTimes1.add(new BusinessTime("Saturday", "09:00", "23:00"));
         businessTimes1.add(new BusinessTime("Sunday", "09:00", "23:00"));
@@ -67,6 +65,17 @@ class MarketServiceTest {
         assertThat(markets.get(1).getName()).isEqualTo("인어수산");
         assertThat(markets.get(0).getBusinessStatus()).isEqualTo("CLOSE");
         assertThat(markets.get(1).getBusinessStatus()).isEqualTo("OPEN");
+    }
+
+    @Test
+    public void DetailMarket(){
+        DetailVO detailMarket = marketService.getMarketDetail(1);
+        List<BusinessTime> businessTimes = detailMarket.getBusinessDays();
+
+        System.out.println(businessTimes.get(0));
+        assertThat(detailMarket.getName()).isEqualTo("인어수산");
+        assertThat(businessTimes.get(0).getStatus()).isEqualTo("OPEN");
+        assertThat(businessTimes.get(1).getStatus()).isEqualTo("CLOSE");
     }
 
     @Test
